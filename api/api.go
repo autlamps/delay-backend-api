@@ -48,6 +48,7 @@ func Create(c Conf) (*mux.Router, error) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", CurrentRoutes)
 	r.HandleFunc("/users", env.CreateNewUser).Methods("POST")
+	r.HandleFunc("/tokens", env.AuthenticateUser).Methods("POST")
 
 	return r, nil
 }
@@ -138,6 +139,96 @@ func (e *Env) CreateNewUser(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(output.JSON500Response))
 		return
 	}
+
+	w.Write(rj)
+}
+
+// AuthenticateUser returns a token for a valid login
+func (e *Env) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	pr := struct {
+		Email    string
+		Password string
+	}{}
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&pr)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	u, err := e.Users.Authenticate(pr.Email, pr.Password)
+
+	if err != nil {
+		if err == data.ErrInvalidEmailOrPassword {
+			rs := output.Response{
+				Success: false,
+				Result:  nil,
+				Errors: output.Errors{
+					Code: 1002,
+					Msg:  "Incorrect email or password",
+				},
+				Meta: output.GetMeta(),
+			}
+
+			rj, err := json.Marshal(rs)
+
+			if err != nil {
+				log.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(output.JSON500Response))
+				return
+			}
+
+			w.Write(rj)
+			return
+		} else {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(output.JSON500Response))
+			return
+		}
+	}
+
+	tk, err := e.Tokens.New(u.ID.String())
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	tks, err := e.Tokens.ToAuth(tk)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	result := struct {
+		UserID    string
+		AuthToken string
+	}{
+		u.ID.String(),
+		tks,
+	}
+
+	rs := output.Response{
+		Success: true,
+		Result:  result,
+		Errors:  output.Errors{},
+		Meta:    output.GetMeta(),
+	}
+
+	rj, err := json.Marshal(rs)
 
 	w.Write(rj)
 }

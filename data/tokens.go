@@ -5,9 +5,13 @@ import (
 
 	"time"
 
+	"errors"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 )
+
+var ErrInvalidEmailOrPassword = errors.New("tokens: Invalid email or password")
 
 // Token
 type Token struct {
@@ -69,12 +73,4 @@ func (ts *TokenService) ToAuth(tk Token) (string, error) {
 	})
 
 	return token.SignedString(ts.key)
-}
-
-// claims returns our standard jwt claims
-func claims() *jwt.StandardClaims {
-	return &jwt.StandardClaims{
-		ExpiresAt: 1916002709, // Expire in 2030, this should probably be changed though :)
-		Issuer:    "delay",
-	}
 }
