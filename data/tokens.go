@@ -7,6 +7,8 @@ import (
 
 	"errors"
 
+	"fmt"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 )
@@ -42,7 +44,7 @@ func (ts *TokenService) New(uid string) (Token, error) {
 	id, err := uuid.NewRandom()
 
 	if err != nil {
-		return Token{}, err
+		return Token{}, fmt.Errorf("token - New: failed to generate UUID: %v", err)
 	}
 
 	t := Token{
@@ -59,7 +61,7 @@ func (ts *TokenService) New(uid string) (Token, error) {
 	)
 
 	if err != nil {
-		return Token{}, err
+		return Token{}, fmt.Errorf("token - New: failed to insert token into db: %v", err)
 	}
 
 	return t, nil
