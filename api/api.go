@@ -55,7 +55,7 @@ func Create(c Conf) (*mux.Router, error) {
 
 // CurrentRoutes returns a simple html page listing what routes are currently available
 func CurrentRoutes(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "<p>Create New User - POST /users</p>")
+	fmt.Fprint(w, "<p>Create New User - POST /users</p><p>Authenitcate User - POST /tokens</p>")
 }
 
 // CreateNewUser creates a new user

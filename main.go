@@ -13,12 +13,12 @@ var dburl string
 var rdurl string
 
 func init() {
-	flag.StringVar(&dburl, "DB_URL", "", "database url")
+	flag.StringVar(&dburl, "DATABASE_URL", "", "database url")
 	flag.StringVar(&rdurl, "RD_URL", "", "redis url")
 	flag.Parse()
 
 	if dburl == "" {
-		dburl = os.Getenv("DB_URL")
+		dburl = os.Getenv("DATABASE_URL")
 	}
 
 	if rdurl == "" {
@@ -35,5 +35,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":5000", r))
 }
