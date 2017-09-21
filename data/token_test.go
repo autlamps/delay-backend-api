@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"fmt"
+
 	_ "github.com/lib/pq"
 )
 
@@ -61,5 +63,25 @@ func TestTokenService_New(t *testing.T) {
 
 //func TestTokenService_ToAuth(t *testing.T) {
 //	ts := InitTokenService("hello", nil)
+//
+//	tk := Token{
+//		ID:      "b50eb31d-4709-4df5-b65d-b6ddb88fea4a",
+//		UserID:  "9b1e4f4a-9776-4485-b627-071a4c012003",
+//		Created: time.Now(),
+//	}
+//
+//	tks, err := ts.ToAuth(tk)
+//
+//	if err != nil {
+//		t.Fatalf("Failed to turn token into token string: %v", err)
+//	}
+//
+//	ot, err := ts.FromAuth(tks)
+//
+//	fmt.Println(ot)
+//
+//	//if tks != exp {
+//	//	t.Fatalf("Generated token doesn't match. Expected %v, got %v", exp, tks)
+//	//}
 //
 //}
