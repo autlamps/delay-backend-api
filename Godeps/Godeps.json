@@ -19,6 +19,11 @@
 			"Rev": "ac112f7d75a0714af1bd86ab17749b31f7809640"
 		},
 		{
+			"ImportPath": "github.com/justinas/alice",
+			"Comment": "1.0.0-16-g1051eaf",
+			"Rev": "1051eaf52fcafdd87ead59d28b065f1fcb8274ec"
+		},
+		{
 			"ImportPath": "github.com/lib/pq",
 			"Comment": "go1.0-cutoff-175-ge422674",
 			"Rev": "e42267488fe361b9dc034be7a6bffef5b195bceb"
