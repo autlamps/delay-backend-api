@@ -14,6 +14,7 @@ import (
 	"log"
 
 	"github.com/autlamps/delay-backend-api/output"
+	"github.com/autlamps/delay-backend-api/static"
 	_ "github.com/lib/pq"
 )
 
@@ -26,6 +27,7 @@ type Conf struct {
 type Env struct {
 	Users  data.UserStore
 	Tokens data.TokenStore
+	Routes static.RouteStore
 }
 
 // Create returns a router ready to handle requests
@@ -43,12 +45,14 @@ func Create(c Conf) (*mux.Router, error) {
 	env := Env{
 		Users:  data.InitUserService(db),
 		Tokens: data.InitTokenService(c.Key, db),
+		Routes: static.RouteServiceInit(db),
 	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", CurrentRoutes)
 	r.HandleFunc("/users", env.CreateNewUser).Methods("POST")
 	r.HandleFunc("/tokens", env.AuthenticateUser).Methods("POST")
+	r.HandleFunc("/routes", env.GetRoutes).Methods("GET")
 
 	return r, nil
 }

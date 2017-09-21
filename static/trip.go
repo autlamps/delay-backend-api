@@ -1,6 +1,8 @@
 package static
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 // Trip represents a trip as stored in the database
 type Trip struct {
