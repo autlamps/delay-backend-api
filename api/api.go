@@ -8,6 +8,7 @@ import (
 
 	"github.com/autlamps/delay-backend-api/data"
 	"github.com/gorilla/mux"
+	"github.com/justinas/alice"
 
 	"github.com/autlamps/delay-backend-api/static"
 	_ "github.com/lib/pq"
@@ -45,9 +46,9 @@ func Create(c Conf) (*mux.Router, error) {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", CurrentRoutes)
-	r.HandleFunc("/users", env.CreateNewUser).Methods("POST")
-	r.HandleFunc("/tokens", env.AuthenticateUser).Methods("POST")
-	r.HandleFunc("/routes", env.GetRoutes).Methods("GET")
+	r.Handle("/users", alice.New(JSONContentType).ThenFunc(env.CreateNewUser)).Methods("POST")
+	r.Handle("/tokens", alice.New(JSONContentType).ThenFunc(env.AuthenticateUser)).Methods("POST")
+	r.Handle("/routes", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRoutes)).Methods("GET")
 
 	return r, nil
 }
