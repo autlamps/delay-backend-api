@@ -1,6 +1,9 @@
 package delays
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // Models for the json output of the collection service
 
@@ -34,4 +37,24 @@ type Out struct {
 	ExecName   string    `json:"exec_name"`
 	Created    int64     `json:"created"`
 	ValidUntil int64     `json:"valid_until"`
+}
+
+// Custom json marshal to modify time for easier usage
+func (ns *NextStop) MarshalJSON() ([]byte, error) {
+	type Stop NextStop
+
+	sa := ns.ScheduledArrival.Format("15:04:05")
+	et := ns.Eta.Format("15:04:05")
+
+	jns := struct {
+		*Stop
+		SA string `json:"scheduled_arrival"`
+		ET string `json:"eta"`
+	}{
+		Stop: (*Stop)(ns),
+		SA:   sa,
+		ET:   et,
+	}
+
+	return json.Marshal(jns)
 }
