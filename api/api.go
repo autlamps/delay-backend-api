@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 
+	"github.com/autlamps/delay-backend-api/objstore"
 	"github.com/autlamps/delay-backend-api/static"
 	_ "github.com/lib/pq"
 )
@@ -21,9 +22,10 @@ type Conf struct {
 }
 
 type Env struct {
-	Users  data.UserStore
-	Tokens data.TokenStore
-	Routes static.RouteStore
+	Users    data.UserStore
+	Tokens   data.TokenStore
+	Routes   static.RouteStore
+	ObjStore objstore.Store
 }
 
 // Create returns a router ready to handle requests
@@ -38,10 +40,17 @@ func Create(c Conf) (*mux.Router, error) {
 		return nil, err
 	}
 
+	obj, err := objstore.InitService(c.RDURL)
+
+	if err != nil {
+		return nil, err
+	}
+
 	env := Env{
-		Users:  data.InitUserService(db),
-		Tokens: data.InitTokenService(c.Key, db),
-		Routes: static.RouteServiceInit(db),
+		Users:    data.InitUserService(db),
+		Tokens:   data.InitTokenService(c.Key, db),
+		Routes:   static.RouteServiceInit(db),
+		ObjStore: obj,
 	}
 
 	r := mux.NewRouter()
@@ -49,11 +58,12 @@ func Create(c Conf) (*mux.Router, error) {
 	r.Handle("/users", alice.New(JSONContentType).ThenFunc(env.CreateNewUser)).Methods("POST")
 	r.Handle("/tokens", alice.New(JSONContentType).ThenFunc(env.AuthenticateUser)).Methods("POST")
 	r.Handle("/routes", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRoutes)).Methods("GET")
+	r.Handle("/delays", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetDelays)).Methods("GET")
 
 	return r, nil
 }
 
 // CurrentRoutes returns a simple html page listing what routes are currently available
 func CurrentRoutes(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "<p>Create New User - POST /users</p><p>Authenitcate User - POST /tokens</p>")
+	fmt.Fprint(w, "<p>Create New User - POST /users</p><p>Authenitcate User - POST /tokens</p><p>Get All Routes - GET /routes</p><p>Get Delays - GET /delays</p>")
 }
