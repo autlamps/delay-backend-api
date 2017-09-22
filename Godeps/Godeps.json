@@ -9,6 +9,36 @@
 			"Rev": "a539ee1a749a2b895533f979515ac7e6e0f5b650"
 		},
 		{
+			"ImportPath": "github.com/go-redis/redis",
+			"Comment": "v6.5.3",
+			"Rev": "da63fe7def48e378caf9539abf64b9b1e37bc01e"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal",
+			"Comment": "v6.5.3",
+			"Rev": "da63fe7def48e378caf9539abf64b9b1e37bc01e"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/consistenthash",
+			"Comment": "v6.5.3",
+			"Rev": "da63fe7def48e378caf9539abf64b9b1e37bc01e"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/hashtag",
+			"Comment": "v6.5.3",
+			"Rev": "da63fe7def48e378caf9539abf64b9b1e37bc01e"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/pool",
+			"Comment": "v6.5.3",
+			"Rev": "da63fe7def48e378caf9539abf64b9b1e37bc01e"
+		},
+		{
+			"ImportPath": "github.com/go-redis/redis/internal/proto",
+			"Comment": "v6.5.3",
+			"Rev": "da63fe7def48e378caf9539abf64b9b1e37bc01e"
+		},
+		{
 			"ImportPath": "github.com/google/uuid",
 			"Comment": "0.2-11-g7e072fc",
 			"Rev": "7e072fc3a7be179aee6d3359e46015aa8c995314"
