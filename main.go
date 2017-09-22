@@ -11,10 +11,12 @@ import (
 
 var dburl string
 var rdurl string
+var key string
 
 func init() {
 	flag.StringVar(&dburl, "DATABASE_URL", "", "database url")
-	flag.StringVar(&rdurl, "RD_URL", "", "redis url")
+	flag.StringVar(&rdurl, "REDIS_URL", "", "redis url")
+	flag.StringVar(&key, "KEY", "", "key used to sign jwt")
 	flag.Parse()
 
 	if dburl == "" {
@@ -22,12 +24,16 @@ func init() {
 	}
 
 	if rdurl == "" {
-		rdurl = os.Getenv("RD_URL")
+		rdurl = os.Getenv("REDIS_URL")
+	}
+
+	if key == "" {
+		key = os.Getenv("KEY")
 	}
 }
 
 func main() {
-	c := api.Conf{"", dburl, "hello"}
+	c := api.Conf{rdurl, dburl, key}
 
 	r, err := api.Create(c)
 
