@@ -90,7 +90,11 @@ func (us *UserService) NewAnonUser() (User, error) {
 		u.Created,
 	)
 
-	return u, fmt.Errorf("users - NewAnonUser: %v", err)
+	if err != nil {
+		return User{}, fmt.Errorf("users - NewAnonUser: %v", err)
+	}
+
+	return u,nil
 }
 
 // GetUser returns a user from the database
