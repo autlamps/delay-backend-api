@@ -2,22 +2,22 @@ package output
 
 // Response is the root response for every api call
 type Response struct {
-	Success bool
-	Errors  Errors
-	Result  interface{}
-	Meta    Meta
+	Success bool        `json:"success"`
+	Errors  interface{} `json:"errors"`
+	Result  interface{} `json:"result"`
+	Meta    Meta        `json:"meta"`
 }
 
 // Errors is our error struct for if something goes wrong
 type Errors struct {
-	Code int
-	Msg  string
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
 }
 
 // Meta contains our version number, by ad
 type Meta struct {
-	Version string
-	By      string
+	Version string `json:"version"`
+	By      string `json:"by"`
 }
 
 // New500Response returns a response object with the info for a 500 response
@@ -33,7 +33,7 @@ func New500Response() Response {
 	}
 }
 
-var JSON500Response = `{"Success":false,"Errors":{"Code":500,"Msg":"Internal Server Error"},"Result":null,"Meta":{"Version":"Early Alpha","By":"Izaac Crooke, Dhayrin Colbert, Dominic Porter, Hayden Woodhead"}}`
+var JSON500Response = `{"success":false,"errors":{"code":500,"msg":"Internal Server Error"},"result":null,"meta":{"version":"Early Alpha","by":"Izaac Crooke, Dhayrin Colbert, Dominic Porter, Hayden Woodhead"}}`
 var JSON401Response = `{"success":false,"errors":{"code":403,"msg":"Invalid authentication token"},"result":null,"meta":{"version":"early alpha","by":"Izaac Crooke, Dhayrin Colbert, Dominic Porter, Hayden Woodhead"}}`
 var JSON403Response = `{"success":false,"errors":{"code":401,"msg":"Authenticated header not included"},"result":null,"meta":{"version":"early alpha","by":"Izaac Crooke, Dhayrin Colbert, Dominic Porter, Hayden Woodhead"}}`
 

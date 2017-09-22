@@ -66,9 +66,9 @@ func (e *Env) CreateNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	out := struct {
-		ID        string
-		Token     string
-		CreatedOn int64
+		ID        string `json:"user_id"`
+		Token     string `json:"auth_token"`
+		CreatedOn int64  `json:"created_on"`
 	}{
 		user.ID.String(),
 		tks,
@@ -78,7 +78,7 @@ func (e *Env) CreateNewUser(w http.ResponseWriter, r *http.Request) {
 	rs := output.Response{
 		Success: true,
 		Result:  out,
-		Errors:  output.Errors{},
+		Errors:  nil,
 		Meta:    output.GetMeta(),
 	}
 
@@ -165,8 +165,8 @@ func (e *Env) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := struct {
-		UserID    string
-		AuthToken string
+		UserID    string `json:"user_id"`
+		AuthToken string `json:"auth_token"`
 	}{
 		u.ID.String(),
 		tks,
@@ -175,7 +175,7 @@ func (e *Env) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	rs := output.Response{
 		Success: true,
 		Result:  result,
-		Errors:  output.Errors{},
+		Errors:  nil,
 		Meta:    output.GetMeta(),
 	}
 
