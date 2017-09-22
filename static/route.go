@@ -7,11 +7,11 @@ import (
 
 // Route represents a route stored in database
 type Route struct {
-	ID        string
-	GTFSID    string
-	AgencyID  string
-	ShortName string
-	LongName  string
+	ID        string `json:"id"`
+	GTFSID    string `json:"gtfs_id"`
+	AgencyID  string `json:"agency_id"`
+	ShortName string `json:"short_name"`
+	LongName  string `json:"long_name"`
 }
 
 type Routes []Route

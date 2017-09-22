@@ -26,8 +26,8 @@ func (e *Env) GetRoutes(w http.ResponseWriter, r *http.Request) {
 			Msg:  "Bad behaviour warning",
 		},
 		Result: struct {
-			Count  int
-			Routes static.Routes
+			Count  int           `json:"count"`
+			Routes static.Routes `json:"routes"`
 		}{
 			len(gr),
 			gr,
