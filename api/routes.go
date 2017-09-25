@@ -71,7 +71,7 @@ func (e *Env) GetRoute(w http.ResponseWriter, r *http.Request) {
 	gs := output.Response{
 		Success: true,
 		Result:  result,
-		Errors:  output.Errors{},
+		Errors:  nil,
 		Meta:    output.GetMeta(),
 	}
 
