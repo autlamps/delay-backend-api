@@ -9,8 +9,6 @@ import (
 
 	"fmt"
 
-	"strconv"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 )
@@ -124,19 +122,13 @@ func (ts *TokenService) FromAuth(tks string) (Token, error) {
 		return Token{}, ErrCannotParseToken
 	}
 
-	crt, ok := claims["token_id"].(string)
+	crt, ok := claims["date_created"].(float64)
 
 	if !ok {
 		return Token{}, ErrCannotParseToken
 	}
 
-	it, err := strconv.ParseInt(crt, 10, 64)
-
-	if err != err {
-		return Token{}, ErrCannotParseToken
-	}
-
-	created := time.Unix(it, 0)
+	created := time.Unix(int64(crt), 0)
 
 	return Token{
 		UserID:  uid,
