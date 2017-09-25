@@ -7,6 +7,7 @@ import (
 
 	"github.com/autlamps/delay-backend-api/output"
 	"github.com/autlamps/delay-backend-api/static"
+	"github.com/gorilla/mux"
 )
 
 func (e *Env) GetRoutes(w http.ResponseWriter, r *http.Request) {
@@ -44,4 +45,37 @@ func (e *Env) GetRoutes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(rj)
+}
+
+func (e *Env) GetRoute(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	vars := mux.Vars(r)
+	route_id := vars["route_id"]
+
+	route, err := e.Routes.GetRouteByID(route_id)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	result := struct {
+		Routes static.Route
+	}{
+		route,
+	}
+
+	gs := output.Response{
+		Success: true,
+		Result:  result,
+		Errors:  nil,
+		Meta:    output.GetMeta(),
+	}
+
+	gr, err := json.Marshal(gs)
+
+	w.Write(gr)
 }

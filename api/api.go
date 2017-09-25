@@ -58,6 +58,7 @@ func Create(c Conf) (*mux.Router, error) {
 	r.Handle("/users", alice.New(JSONContentType).ThenFunc(env.CreateNewUser)).Methods("POST")
 	r.Handle("/tokens", alice.New(JSONContentType).ThenFunc(env.AuthenticateUser)).Methods("POST")
 	r.Handle("/routes", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRoutes)).Methods("GET")
+	r.Handle("/routes/{route_id}", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRoute)).Methods("GET")
 	r.Handle("/delays", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetDelays)).Methods("GET")
 
 	return r, nil
@@ -65,5 +66,5 @@ func Create(c Conf) (*mux.Router, error) {
 
 // CurrentRoutes returns a simple html page listing what routes are currently available
 func CurrentRoutes(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "<p>Create New User - POST /users</p><p>Authenitcate User - POST /tokens</p><p>Get All Routes - GET /routes</p><p>Get Delays - GET /delays</p>")
+	fmt.Fprint(w, "<p>Create New User - POST /users</p><p>Authenitcate User - POST /tokens</p><p>Get All Routes - GET /routes</p><p>Get a Route with an ID - GET /routes/:route_id</p><p>Get Delays - GET /delays</p>")
 }
