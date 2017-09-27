@@ -53,8 +53,14 @@ func (us *UserService) NewUser(nu NewUser) (User, error) {
 		return User{}, fmt.Errorf("users - NewUser: %v", err)
 	}
 
+	id, err := uuid.NewRandom()
+
+	if err != nil {
+		return User{}, fmt.Errorf("users - NewUser: failed to generate id: %v", err)
+	}
+
 	u := User{
-		ID:       uuid.New(),
+		ID:       id,
 		Name:     nu.Name,
 		Email:    nu.Email,
 		Password: hp,
@@ -94,7 +100,7 @@ func (us *UserService) NewAnonUser() (User, error) {
 		return User{}, fmt.Errorf("users - NewAnonUser: %v", err)
 	}
 
-	return u,nil
+	return u, nil
 }
 
 // GetUser returns a user from the database
@@ -103,7 +109,7 @@ func (us *UserService) GetUser(id string) (User, error) {
 
 	u := User{}
 
-	err := row.Scan(&u.ID, &u.Email, &u.Email, &u.Password, &u.Created)
+	err := row.Scan(&u.ID, &u.Email, &u.Name, &u.Password, &u.Created)
 
 	if err != nil {
 		return User{}, err
