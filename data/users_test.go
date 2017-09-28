@@ -70,6 +70,18 @@ func TestUserService_NewUser(t *testing.T) {
 		t.Fatalf("New users password not the same as database.")
 	}
 
+	//Clean Up
+	_, err = db.Exec("DELETE FROM tokens WHERE user_id = $1", u.ID)
+
+	if err != nil {
+		fmt.Printf("Failed to delete created user token: %v\n", err)
+	}
+
+	_, err = db.Exec("DELETE FROM users WHERE user_id = $1", u.ID)
+
+	if err != nil {
+		fmt.Printf("Failed to delete created user: %v\n", err)
+	}
 }
 
 func TestUserService_NewAnonUser(t *testing.T) {
@@ -123,6 +135,64 @@ func TestUserService_NewAnonUser(t *testing.T) {
 
 	if dbu.Email != "" || dbu.Name != "" || bytes.Compare(dbu.Password, []byte{}) != 0 {
 		t.Fatalf("Returned user not anon: %v", dbu)
+	}
+
+	//Clean Up
+	_, err = db.Exec("DELETE FROM tokens WHERE user_id = $1", u.ID)
+
+	if err != nil {
+		fmt.Printf("Failed to delete created user token: %v\n", err)
+	}
+
+	_, err = db.Exec("DELETE FROM users WHERE user_id = $1", u.ID)
+
+	if err != nil {
+		fmt.Printf("Failed to delete created user: %v\n", err)
+	}
+}
+
+func TestUserService_Authenticate(t *testing.T) {
+	db, err := sql.Open("postgres", dburl)
+	defer db.Close()
+
+	if err != nil {
+		t.Fatalf("Failed to connect to db: %v", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		t.Fatalf("Failed to ping db: %v", err)
+	}
+
+	us := InitUserService(db)
+
+	nu := NewUser{
+		Email:    "bobby.tables@example.com",
+		Name:     "Bobby Tables",
+		Password: "correcthorsebatterystaple",
+	}
+
+	u, err := us.NewUser(nu)
+
+	if err != nil {
+		t.Fatalf("Failed to insert new user: %v", err)
+	}
+
+	tests := []struct {
+		Email    string
+		Password string
+		Expect   error
+	}{
+		{"bobby.tables@example.com", "correcthorsebatterystaple", nil},
+		{"bobby", "correcthorsebatterystaple", ErrInvalidEmailOrPassword},
+		{"bobby.tables@example.com", "correcthorsebattery", ErrInvalidEmailOrPassword},
+	}
+
+	for _, test := range tests {
+		_, err := us.Authenticate(test.Email, test.Password)
+
+		if err != test.Expect {
+			t.Errorf("Error different than expected. Expected %v, got $v", test.Expect, err)
+		}
 	}
 
 	//Clean Up
