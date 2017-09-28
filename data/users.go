@@ -90,11 +90,12 @@ func (us *UserService) NewAnonUser() (User, error) {
 		Created: time.Now(),
 	}
 
-	_, err := us.db.Exec(
+	a, err := us.db.Exec(
 		"Insert into users (user_id, date_created) VALUES ($1, $2)",
 		u.ID,
 		u.Created,
 	)
+	fmt.Println(a)
 
 	if err != nil {
 		return User{}, fmt.Errorf("users - NewAnonUser: %v", err)
@@ -105,11 +106,26 @@ func (us *UserService) NewAnonUser() (User, error) {
 
 // GetUser returns a user from the database
 func (us *UserService) GetUser(id string) (User, error) {
-	row := us.db.QueryRow("SELECT user_id, email, name, password, date_created FROM users WHERE user_id = $1'", id)
+	var email sql.NullString
+	var name sql.NullString
+
+	row := us.db.QueryRow("SELECT user_id, email, name, password, date_created FROM users WHERE user_id = $1", id)
 
 	u := User{}
 
-	err := row.Scan(&u.ID, &u.Email, &u.Name, &u.Password, &u.Created)
+	err := row.Scan(&u.ID, &email, &name, &u.Password, &u.Created)
+
+	if email.Valid {
+		u.Email = email.String
+	} else {
+		u.Email = ""
+	}
+
+	if name.Valid {
+		u.Name = name.String
+	} else {
+		u.Name = ""
+	}
 
 	if err != nil {
 		return User{}, err

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"bytes"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -66,6 +68,61 @@ func TestUserService_NewUser(t *testing.T) {
 
 	if err := bcrypt.CompareHashAndPassword(dbu.Password, []byte(nu.Password)); err != nil {
 		t.Fatalf("New users password not the same as database.")
+	}
+
+}
+
+func TestUserService_NewAnonUser(t *testing.T) {
+	db, err := sql.Open("postgres", dburl)
+	defer db.Close()
+
+	if err != nil {
+		t.Fatalf("Failed to connect to db: %v", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		t.Fatalf("Failed to ping db: %v", err)
+	}
+
+	us := InitUserService(db)
+
+	u, err := us.NewAnonUser()
+
+	if err != nil {
+		t.Fatalf("Failed to create new anon user: %v", err)
+	}
+
+	var email sql.NullString
+	var name sql.NullString
+
+	row := db.QueryRow("SELECT user_id, email, name, password, date_created FROM users WHERE user_id = $1", u.ID)
+
+	dbu := User{}
+
+	err = row.Scan(&dbu.ID, &email, &name, &dbu.Password, &dbu.Created)
+
+	if email.Valid {
+		dbu.Email = email.String
+	} else {
+		dbu.Email = ""
+	}
+
+	if name.Valid {
+		dbu.Name = name.String
+	} else {
+		dbu.Name = ""
+	}
+
+	if err != nil {
+		t.Fatalf("Failed to get new user from db: %v", err)
+	}
+
+	if u.Email != "" || u.Name != "" || bytes.Compare(u.Password, []byte{}) != 0 {
+		t.Fatalf("Returned user not anon: %v", u)
+	}
+
+	if dbu.Email != "" || dbu.Name != "" || bytes.Compare(dbu.Password, []byte{}) != 0 {
+		t.Fatalf("Returned user not anon: %v", dbu)
 	}
 
 	//Clean Up
