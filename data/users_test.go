@@ -7,6 +7,8 @@ import (
 
 	"bytes"
 
+	"reflect"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -193,6 +195,56 @@ func TestUserService_Authenticate(t *testing.T) {
 		if err != test.Expect {
 			t.Errorf("Error different than expected. Expected %v, got $v", test.Expect, err)
 		}
+	}
+
+	//Clean Up
+	_, err = db.Exec("DELETE FROM tokens WHERE user_id = $1", u.ID)
+
+	if err != nil {
+		fmt.Printf("Failed to delete created user token: %v\n", err)
+	}
+
+	_, err = db.Exec("DELETE FROM users WHERE user_id = $1", u.ID)
+
+	if err != nil {
+		fmt.Printf("Failed to delete created user: %v\n", err)
+	}
+}
+
+func TestUserService_GetUser(t *testing.T) {
+	db, err := sql.Open("postgres", dburl)
+	defer db.Close()
+
+	if err != nil {
+		t.Fatalf("Failed to connect to db: %v", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		t.Fatalf("Failed to ping db: %v", err)
+	}
+
+	us := InitUserService(db)
+
+	nu := NewUser{
+		Email:    "bobby.tables@example.com",
+		Name:     "Bobby Tables",
+		Password: "correcthorsebatterystaple",
+	}
+
+	u, err := us.NewUser(nu)
+
+	if err != nil {
+		t.Fatalf("Failed to insert new user: %v", err)
+	}
+
+	dbu, err := us.GetUser(u.ID.String())
+
+	if err != nil {
+		t.Fatalf("Failed to retrieve user: %v", err)
+	}
+
+	if !reflect.DeepEqual(u, dbu) {
+		t.Fatalf("User from db differs from returned. Expected %v, got %v", u, dbu)
 	}
 
 	//Clean Up

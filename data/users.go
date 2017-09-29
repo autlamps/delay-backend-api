@@ -64,7 +64,7 @@ func (us *UserService) NewUser(nu NewUser) (User, error) {
 		Name:     nu.Name,
 		Email:    nu.Email,
 		Password: hp,
-		Created:  time.Now(),
+		Created:  time.Now().Round(time.Second),
 	}
 
 	_, err = us.db.Exec(
@@ -87,7 +87,7 @@ func (us *UserService) NewUser(nu NewUser) (User, error) {
 func (us *UserService) NewAnonUser() (User, error) {
 	u := User{
 		ID:      uuid.New(),
-		Created: time.Now(),
+		Created: time.Now().Round(time.Second),
 	}
 
 	a, err := us.db.Exec(
@@ -130,6 +130,9 @@ func (us *UserService) GetUser(id string) (User, error) {
 	if err != nil {
 		return User{}, err
 	}
+
+	// Convert time to local
+	u.Created = u.Created.In(time.Local)
 
 	return u, nil
 }
