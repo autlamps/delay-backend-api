@@ -1,0 +1,17 @@
+package api
+
+import (
+	"flag"
+	"os"
+)
+
+var dburl string
+
+func init() {
+	flag.StringVar(&dburl, "DATABASE_URL", "", "database url")
+	flag.Parse()
+
+	if dburl == "" {
+		dburl = os.Getenv("DATABASE_URL")
+	}
+}

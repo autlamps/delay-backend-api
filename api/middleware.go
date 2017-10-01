@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/autlamps/delay-backend-api/data"
 	"github.com/autlamps/delay-backend-api/output"
 )
 
@@ -23,7 +24,12 @@ func (e *Env) AuthUser(h http.Handler) http.Handler {
 		token, err := e.Tokens.FromAuth(auth)
 
 		if err != nil {
-			log.Printf("middleware - AuthUser: failed to parse token: %v\n", err)
+			if err == data.ErrTokenInvalid {
+				log.Printf("middleware - AuthUser: failed to parse token: %v\n", err)
+			} else {
+				log.Printf("middleware - AuthUser: failed to parse token: %v\n", err)
+			}
+
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(output.JSON401Response))
 			return
