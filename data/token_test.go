@@ -98,12 +98,31 @@ func TestTokenService_ToAuth(t *testing.T) {
 }
 
 func TestTokenService_FromAuth(t *testing.T) {
-	ts := InitTokenService("hello", nil)
+	db, err := sql.Open("postgres", dburl)
+	defer db.Close()
 
-	tk := Token{
-		ID:      "b50eb31d-4709-4df5-b65d-b6ddb88fea4a",
-		UserID:  "9b1e4f4a-9776-4485-b627-071a4c012003",
-		Created: time.Now().Round(time.Second),
+	if err != nil {
+		t.Fatalf("Failed to connect to db: %v", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		t.Fatalf("Failed to ping db: %v", err)
+	}
+
+	us := InitUserService(db)
+
+	u, err := us.NewUser(NewUser{
+		"Bobby Tables",
+		"bobby.tables@example.com",
+		"correcthorsebatterystaple",
+	})
+
+	ts := InitTokenService("hello", db)
+
+	tk, err := ts.New(u.ID.String())
+
+	if err != nil {
+		t.Fatalf("Failed insert new token into db: %v", err)
 	}
 
 	tks, err := ts.ToAuth(tk)
@@ -120,5 +139,18 @@ func TestTokenService_FromAuth(t *testing.T) {
 
 	if !reflect.DeepEqual(tk, ot) {
 		t.Fatalf("Token generated doesn't equal expected: Expected: %v, Got: %v", tk, ot)
+	}
+
+	//Clean Up
+	_, err = db.Exec("DELETE FROM tokens WHERE user_id = $1", u.ID)
+
+	if err != nil {
+		fmt.Printf("Failed to delete created user token: %v\n", err)
+	}
+
+	_, err = db.Exec("DELETE FROM users WHERE user_id = $1", u.ID)
+
+	if err != nil {
+		fmt.Printf("Failed to delete created user: %v\n", err)
 	}
 }
