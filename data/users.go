@@ -53,12 +53,18 @@ func (us *UserService) NewUser(nu NewUser) (User, error) {
 		return User{}, fmt.Errorf("users - NewUser: %v", err)
 	}
 
+	id, err := uuid.NewRandom()
+
+	if err != nil {
+		return User{}, fmt.Errorf("users - NewUser: failed to generate id: %v", err)
+	}
+
 	u := User{
-		ID:       uuid.New(),
+		ID:       id,
 		Name:     nu.Name,
 		Email:    nu.Email,
 		Password: hp,
-		Created:  time.Now(),
+		Created:  time.Now().Round(time.Second),
 	}
 
 	_, err = us.db.Exec(
@@ -81,33 +87,52 @@ func (us *UserService) NewUser(nu NewUser) (User, error) {
 func (us *UserService) NewAnonUser() (User, error) {
 	u := User{
 		ID:      uuid.New(),
-		Created: time.Now(),
+		Created: time.Now().Round(time.Second),
 	}
 
-	_, err := us.db.Exec(
+	a, err := us.db.Exec(
 		"Insert into users (user_id, date_created) VALUES ($1, $2)",
 		u.ID,
 		u.Created,
 	)
+	fmt.Println(a)
 
 	if err != nil {
 		return User{}, fmt.Errorf("users - NewAnonUser: %v", err)
 	}
 
-	return u,nil
+	return u, nil
 }
 
 // GetUser returns a user from the database
 func (us *UserService) GetUser(id string) (User, error) {
-	row := us.db.QueryRow("SELECT user_id, email, name, password, date_created FROM users WHERE user_id = $1'", id)
+	var email sql.NullString
+	var name sql.NullString
+
+	row := us.db.QueryRow("SELECT user_id, email, name, password, date_created FROM users WHERE user_id = $1", id)
 
 	u := User{}
 
-	err := row.Scan(&u.ID, &u.Email, &u.Email, &u.Password, &u.Created)
+	err := row.Scan(&u.ID, &email, &name, &u.Password, &u.Created)
+
+	if email.Valid {
+		u.Email = email.String
+	} else {
+		u.Email = ""
+	}
+
+	if name.Valid {
+		u.Name = name.String
+	} else {
+		u.Name = ""
+	}
 
 	if err != nil {
 		return User{}, err
 	}
+
+	// Convert time to local
+	u.Created = u.Created.In(time.Local)
 
 	return u, nil
 }

@@ -9,8 +9,6 @@ import (
 
 	"fmt"
 
-	"strconv"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 )
@@ -20,6 +18,7 @@ var ErrInvalidTokenSigningMethod = errors.New("tokens: Invalid signing method us
 var ErrInvalidTokenClaims = errors.New("tokens: Token jwt claims invalid")
 var ErrCannotParseToken = errors.New("tokens: Cannot parse token")
 var ErrTokenExpired = errors.New("tokens: Token expired")
+var ErrTokenInvalid = errors.New("tokens: Given token not present in db")
 
 // Token
 type Token struct {
@@ -57,7 +56,7 @@ func (ts *TokenService) New(uid string) (Token, error) {
 	t := Token{
 		ID:      id.String(),
 		UserID:  uid,
-		Created: time.Now(),
+		Created: time.Now().Round(time.Second),
 	}
 
 	_, err = ts.db.Exec(
@@ -77,16 +76,15 @@ func (ts *TokenService) New(uid string) (Token, error) {
 // New returns a new key with the given token id
 func (ts *TokenService) ToAuth(tk Token) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"token_id":     tk.ID,
-		"user_id":      tk.UserID,
-		"date_created": tk.Created.Unix(),
+		"token_id": tk.ID,
 	})
 
 	return token.SignedString(ts.key)
 }
 
-// From auth takes a string jwt and returns the token struct with values
-// Or returns an error
+// From auth takes a string jwt and returns the token struct with values from the
+// database. Returns an error if it cant parse the token or the token is not present
+// in the database.
 func (ts *TokenService) FromAuth(tks string) (Token, error) {
 	jtk, err := jwt.Parse(tks, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
@@ -112,35 +110,29 @@ func (ts *TokenService) FromAuth(tks string) (Token, error) {
 		return Token{}, ErrTokenExpired
 	}
 
-	uid, ok := claims["user_id"].(string)
-
-	if !ok {
-		return Token{}, ErrCannotParseToken
-	}
-
 	tid, ok := claims["token_id"].(string)
 
 	if !ok {
 		return Token{}, ErrCannotParseToken
 	}
 
-	crt, ok := claims["token_id"].(string)
+	dbtk := Token{}
 
-	if !ok {
-		return Token{}, ErrCannotParseToken
+	row := ts.db.QueryRow("SELECT token_id, user_id, date_created FROM tokens WHERE token_id = $1", tid)
+
+	err = row.Scan(&dbtk.ID, &dbtk.UserID, &dbtk.Created)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return Token{}, ErrTokenInvalid
+		}
+
+		return Token{}, fmt.Errorf("tokens - FromAuth: Failed to get token from db: %v", err)
 	}
-
-	it, err := strconv.ParseInt(crt, 10, 64)
-
-	if err != err {
-		return Token{}, ErrCannotParseToken
-	}
-
-	created := time.Unix(it, 0)
 
 	return Token{
-		UserID:  uid,
-		ID:      tid,
-		Created: created,
+		UserID:  dbtk.UserID,
+		ID:      dbtk.ID,
+		Created: dbtk.Created.In(time.Local),
 	}, nil
 }
