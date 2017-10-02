@@ -8,8 +8,14 @@ import (
 
 	"encoding/json"
 
+	"log"
+
+	"errors"
+
 	"github.com/google/uuid"
 )
+
+var ErrFailedToDeleteNotification = errors.New("notifications - Failed to delete notification method from db")
 
 // NotifyType is the type of notification method to be used
 type NotifyType string
@@ -98,3 +104,52 @@ func (ns *NotifyInfoService) New(uid string, t NotifyType, n, v string) (NotifyI
 	return ni, nil
 }
 
+func (ns *NotifyInfoService) Get(id string) (NotifyInfo, error) {
+	ni := NotifyInfo{}
+
+	row := ns.db.QueryRow("SELECT notification_id, user_id, type, name, value, date_created FROM notification WHERE notification_id = $1", id)
+
+	err := row.Scan(&ni.ID, &ni.UserID, &ni.Type, &ni.Name, &ni.Value, &ni.Created)
+
+	if err != nil {
+		return NotifyInfo{}, fmt.Errorf("notifications - Get: Failed to retrieve notification info: %v", err)
+	}
+
+	// Convert from db utc time to local
+	ni.Created = ni.Created.In(time.Local)
+
+	return ni, err
+}
+
+func (ns *NotifyInfoService) GetAll(uid string) ([]NotifyInfo, error) {
+	sni := []NotifyInfo{}
+
+	rows, err := ns.db.Query("SELECT notification_id, user_id, type, name, value, date_created FROM notification WHERE user_id = $1", uid)
+
+	if err != nil {
+		return []NotifyInfo{}, fmt.Errorf("notifications - GetAll: failed to retrieve from db: %v", err)
+	}
+
+	for rows.Next() {
+		ni := NotifyInfo{}
+
+		err = rows.Scan(&ni.ID, &ni.UserID, &ni.Type, &ni.Name, &ni.Value, &ni.Created)
+
+		if err != nil {
+			// Log and continue, better to return some notification methods than none
+			log.Printf("notifications - GetAll: failed to scan row from db: %v", err)
+			continue
+		}
+
+		ni.Created = ni.Created.Local()
+
+		sni = append(sni, ni)
+	}
+
+	return sni, nil
+}
+
+func (ns *NotifyInfoService) Delete(id string) error {
+	_, err := ns.db.Exec("DELETE FROM notification WHERE notification_id = $1", id)
+	return err
+}
