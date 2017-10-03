@@ -66,3 +66,36 @@ func (e *Env) CreateNotification(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(rj)
 }
+
+func (e *Env) GetAllUserNotifications(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	tk, ok := ctx.Value("Token").(data.Token)
+
+	if !ok {
+		log.Printf("Token from context not of type ctx: %v", tk)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	uni, err := e.NotificationInfo.GetAll(tk.UserID)
+
+	rs := output.Response{
+		Success: true,
+		Errors:  nil,
+		Meta:    output.GetMeta(),
+		Result:  uni,
+	}
+
+	rj, err := json.Marshal(rs)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	w.Write(rj)
+}
