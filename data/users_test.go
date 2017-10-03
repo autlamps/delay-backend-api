@@ -185,7 +185,7 @@ func TestUserService_Authenticate(t *testing.T) {
 		Expect   error
 	}{
 		{"bobby.tables@example.com", "correcthorsebatterystaple", nil},
-		{"bobby", "correcthorsebatterystaple", ErrInvalidEmailOrPassword},
+		{"bobby", "correcthorsebatterystaple", ErrEmailNotPresent},
 		{"bobby.tables@example.com", "correcthorsebattery", ErrInvalidEmailOrPassword},
 	}
 

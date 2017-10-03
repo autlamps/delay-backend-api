@@ -116,12 +116,13 @@ func (e *Env) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	u, err := e.Users.Authenticate(pr.Email, pr.Password)
 
 	if err != nil {
-		if err == data.ErrInvalidEmailOrPassword {
+		switch err {
+		case data.ErrInvalidEmailOrPassword:
 			rs := output.Response{
 				Success: false,
 				Result:  nil,
 				Errors: output.Errors{
-					Code: 1002,
+					Code: 1001,
 					Msg:  "Incorrect email or password",
 				},
 				Meta: output.GetMeta(),
@@ -138,7 +139,29 @@ func (e *Env) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 
 			w.Write(rj)
 			return
-		} else {
+		case data.ErrEmailNotPresent:
+			rs := output.Response{
+				Success: false,
+				Result:  nil,
+				Errors: output.Errors{
+					Code: 1000,
+					Msg:  "Email doesn't match any registered account",
+				},
+				Meta: output.GetMeta(),
+			}
+
+			rj, err := json.Marshal(rs)
+
+			if err != nil {
+				log.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(output.JSON500Response))
+				return
+			}
+
+			w.Write(rj)
+			return
+		default:
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(output.JSON500Response))

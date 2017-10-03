@@ -1,6 +1,7 @@
 package data
 
 import (
+	"errors"
 	"time"
 
 	"database/sql"
@@ -10,6 +11,9 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var ErrInvalidEmailOrPassword = errors.New("users: Invalid email or password")
+var ErrEmailNotPresent = errors.New("users: Email not registered")
 
 // NewUser is the type received from mobile apps before being saved into the db
 type NewUser struct {
@@ -148,7 +152,7 @@ func (us *UserService) Authenticate(e, p string) (User, error) {
 	if err != nil {
 
 		if err == sql.ErrNoRows {
-			return User{}, ErrInvalidEmailOrPassword
+			return User{}, ErrEmailNotPresent
 		}
 
 		return User{}, fmt.Errorf("users - Authenticate: %v", err)
