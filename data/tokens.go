@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrInvalidEmailOrPassword = errors.New("tokens: Invalid email or password")
 var ErrInvalidTokenSigningMethod = errors.New("tokens: Invalid signing method used to sign jwt")
 var ErrInvalidTokenClaims = errors.New("tokens: Token jwt claims invalid")
 var ErrCannotParseToken = errors.New("tokens: Cannot parse token")
