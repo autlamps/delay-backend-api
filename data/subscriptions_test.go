@@ -134,6 +134,46 @@ func TestSubscriptionService_New(t *testing.T) {
 	}
 }
 
+func TestSubscriptionService_Get(t *testing.T) {
+	n, u, db, err := subSetup()
+
+	if err != nil {
+		t.Fatalf("Failed to setup: %v", err)
+	}
+
+	ss := InitSubscriptionService(db)
+
+	ns := NewSubscription{
+		TripID:          "df688c57-987c-4705-9e22-936342eb6e3f",
+		StopTimeID:      "5cce0bca-d489-43d7-b3cb-48e0df054c8a",
+		Days:            []Day{"Mon", "Tue", "Wed"},
+		NotificationIDs: []string{n.ID},
+		UserID:          u.ID.String(),
+	}
+
+	s, err := ss.New(ns)
+
+	if err != nil {
+		t.Fatalf("Failed to create subscription: %v", err)
+	}
+
+	dbs, err := ss.Get(s.ID)
+
+	if err != nil {
+		t.Fatalf("Failed to get sub from db: %v", err)
+	}
+
+	if !reflect.DeepEqual(s, dbs) {
+		t.Fatalf("DB sub and sub different. Expected %v, got %v", s, dbs)
+	}
+
+	err = subCleanUp(s, n, u, db)
+
+	if err != nil {
+		t.Fatalf("Failed to clean up")
+	}
+}
+
 func subCleanUp(s Subscription, ni NotifyInfo, u User, db *sql.DB) error {
 	_, err := db.Exec("DELETE FROM sub_notification WHERE sub_id = $1", s.ID)
 
@@ -166,5 +206,4 @@ func subCleanUp(s Subscription, ni NotifyInfo, u User, db *sql.DB) error {
 	db.Close()
 
 	return nil
-
 }

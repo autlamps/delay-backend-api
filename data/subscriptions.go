@@ -56,6 +56,8 @@ type Subscription struct {
 // SubscriptionStore defines methods for a concrete implementation
 type SubscriptionStore interface {
 	New(NewSubscription) (Subscription, error)
+	Get(string) (Subscription, error)
+	GetAll(string) ([]Subscription, error)
 }
 
 // SubscriptionService is our concrete psql implementation of the SubscriptionStore
@@ -139,6 +141,45 @@ func (ss *SubscriptionService) New(ns NewSubscription) (Subscription, error) {
 		if err != nil {
 			return Subscription{}, fmt.Errorf("users - New: failed to link notification methods and subscription: %v", err)
 		}
+	}
+
+	return s, nil
+}
+
+// Get returns a single subscription by id
+func (ss *SubscriptionService) Get(id string) (Subscription, error) {
+	s := Subscription{}
+
+	row := ss.db.QueryRow("SELECT sub_id, trip_id, stoptime_id, user_id, archived, date_created, monday, tuesday, wednesday, thursday, friday, saturday, sunday FROM subscription WHERE sub_id = $1", id)
+
+	err := row.Scan(&s.ID, &s.TripID, &s.StopTimeID, &s.UserID, &s.Archived, &s.Created, &s.Monday, &s.Tuesday, &s.Wednesday, &s.Thursday, &s.Friday, &s.Saturday, &s.Sunday)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return Subscription{}, fmt.Errorf("subscription - Get: No subscription with id: %v", id)
+		}
+
+		return Subscription{}, fmt.Errorf("subscription - Get: Failed to query db for subscription: %v", err)
+	}
+
+	s.Created = s.Created.Local()
+
+	rows, err := ss.db.Query("SELECT notification_id from sub_notification WHERE sub_id = $1", s.ID)
+
+	if err != nil {
+		return Subscription{}, fmt.Errorf("subscription - Get: Failed get notification ids: %v", err)
+	}
+
+	for rows.Next() {
+		var id string
+
+		err := rows.Scan(&id)
+
+		if err != nil {
+			return Subscription{}, fmt.Errorf("subscription - Get: Failed to read individual notification id: %v", err)
+		}
+
+		s.NotificationIDs = append(s.NotificationIDs, id)
 	}
 
 	return s, nil
