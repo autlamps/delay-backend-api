@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func setup() (User, *sql.DB, error) {
+func notifySetup() (User, *sql.DB, error) {
 	db, err := sql.Open("postgres", dburl)
 
 	if err != nil {
@@ -34,8 +34,8 @@ func setup() (User, *sql.DB, error) {
 	return u, db, nil
 }
 
-func cleanup(u User, ni NotifyInfo, db *sql.DB) error {
-	// If we've already cleaned up the ni dont cleanup
+func notifyCleanup(u User, ni NotifyInfo, db *sql.DB) error {
+	// If we've already cleaned up the ni dont notifyCleanup
 	if ni.ID != "" {
 		_, err := db.Exec("DELETE FROM notification WHERE notification_id = $1", ni.ID)
 
@@ -62,7 +62,7 @@ func cleanup(u User, ni NotifyInfo, db *sql.DB) error {
 }
 
 func TestNotifyInfoService_New(t *testing.T) {
-	u, db, err := setup()
+	u, db, err := notifySetup()
 
 	if err != nil {
 		t.Fatalf("Setup failed: %v", err)
@@ -93,15 +93,15 @@ func TestNotifyInfoService_New(t *testing.T) {
 	}
 
 	// Cleanup
-	err = cleanup(u, ni, db)
+	err = notifyCleanup(u, ni, db)
 
 	if err != nil {
-		t.Fatalf("Failed to cleanup: %v", err)
+		t.Fatalf("Failed to notifyCleanup: %v", err)
 	}
 }
 
 func TestNotifyInfoService_Delete(t *testing.T) {
-	u, db, err := setup()
+	u, db, err := notifySetup()
 
 	if err != nil {
 		t.Fatalf("Setup failed: %v", err)
@@ -131,7 +131,7 @@ func TestNotifyInfoService_Delete(t *testing.T) {
 		t.Fatal("Notification not deleted")
 	}
 
-	err = cleanup(u, ni, db)
+	err = notifyCleanup(u, ni, db)
 
 	if err != nil {
 		t.Fatalf("Cleanup failed: %v", err)
@@ -139,10 +139,10 @@ func TestNotifyInfoService_Delete(t *testing.T) {
 }
 
 func TestNotifyInfoService_GetAll(t *testing.T) {
-	u, db, err := setup()
+	u, db, err := notifySetup()
 
 	if err != nil {
-		t.Fatalf("Failed to setup test: %v", err)
+		t.Fatalf("Failed to notifySetup test: %v", err)
 	}
 
 	nis := InitNotifyInfoService(db)
@@ -177,9 +177,9 @@ func TestNotifyInfoService_GetAll(t *testing.T) {
 		}
 	}
 
-	err = cleanup(u, NotifyInfo{}, db)
+	err = notifyCleanup(u, NotifyInfo{}, db)
 
 	if err != nil {
-		t.Fatalf("Failed to run cleanup: %v", err)
+		t.Fatalf("Failed to run notifyCleanup: %v", err)
 	}
 }
