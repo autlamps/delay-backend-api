@@ -184,3 +184,48 @@ func (ss *SubscriptionService) Get(id string) (Subscription, error) {
 
 	return s, nil
 }
+
+// GetAll returns all subscriptions belonging to a single user
+func (ss *SubscriptionService) GetAll(uid string) ([]Subscription, error) {
+	subs := []Subscription{}
+
+	rows, err := ss.db.Query("SELECT sub_id, trip_id, stoptime_id, user_id, archived, date_created, monday, tuesday, wednesday, thursday, friday, saturday, sunday FROM subscription WHERE user_id = $1", uid)
+
+	if err != nil {
+		return []Subscription{}, fmt.Errorf("subscription - GetAll: Failed to get subs from db: %v", err)
+	}
+
+	for rows.Next() {
+		var s Subscription
+
+		err := rows.Scan(&s.ID, &s.TripID, &s.StopTimeID, &s.UserID, &s.Archived, &s.Created, &s.Monday, &s.Tuesday, &s.Wednesday, &s.Thursday, &s.Friday, &s.Saturday, &s.Sunday)
+
+		if err != nil {
+			return []Subscription{}, fmt.Errorf("subscription - GetAll: Failed to scan for individual subscription: %v", err)
+		}
+
+		s.Created = s.Created.Local()
+
+		notifyRows, err := ss.db.Query("SELECT notification_id from sub_notification WHERE sub_id = $1", s.ID)
+
+		if err != nil {
+			return []Subscription{}, fmt.Errorf("subscription - GetAll: Failed get notification ids: %v", err)
+		}
+
+		for notifyRows.Next() {
+			var id string
+
+			err := notifyRows.Scan(&id)
+
+			if err != nil {
+				return []Subscription{}, fmt.Errorf("subscription - GetAll: Failed to read individual notification id: %v", err)
+			}
+
+			s.NotificationIDs = append(s.NotificationIDs, id)
+		}
+
+		subs = append(subs, s)
+	}
+
+	return subs, nil
+}

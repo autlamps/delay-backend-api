@@ -130,7 +130,7 @@ func TestSubscriptionService_New(t *testing.T) {
 	err = subCleanUp(s, n, u, db)
 
 	if err != nil {
-		t.Fatalf("Failed to clean up")
+		t.Fatalf("Failed to clean up: %v", err)
 	}
 }
 
@@ -174,19 +174,93 @@ func TestSubscriptionService_Get(t *testing.T) {
 	}
 }
 
+func TestSubscriptionService_GetAll(t *testing.T) {
+	n, u, db, err := subSetup()
+
+	if err != nil {
+		t.Fatalf("Failed to setup: %v", err)
+	}
+
+	ss := InitSubscriptionService(db)
+
+	subs := []Subscription{}
+
+	stopTimeIDs := []string{
+		"5cce0bca-d489-43d7-b3cb-48e0df054c8a",
+		"9a5a2eae-1ed4-49b5-abfe-519bfefc6300",
+		"7225fa2b-cba3-4b4f-a0f8-aecb1b1dfb70",
+		"fd91dca8-aaef-4548-bed4-fa7d835de25c",
+		"98a3144f-7ed3-419b-9276-ff747c46b982",
+	}
+
+	for i := 0; i < 5; i++ {
+		ns := NewSubscription{
+			TripID:          "df688c57-987c-4705-9e22-936342eb6e3f",
+			StopTimeID:      stopTimeIDs[i],
+			Days:            []Day{"Mon", "Tue", "Wed"},
+			NotificationIDs: []string{n.ID},
+			UserID:          u.ID.String(),
+		}
+
+		s, err := ss.New(ns)
+
+		if err != nil {
+			t.Fatalf("Failed to create new sub: %v", err)
+		}
+
+		subs = append(subs, s)
+	}
+
+	dbsubs, err := ss.GetAll(u.ID.String())
+
+	if err != nil {
+		t.Fatalf("Failed to get subs from db: %v", err)
+	}
+
+	if !reflect.DeepEqual(subs, dbsubs) {
+		t.Fatalf("Subs returned from GetAll not the same as expected")
+	}
+
+	// CleanUp
+	for _, sub := range subs {
+		_, err := db.Exec("DELETE FROM sub_notification WHERE sub_id = $1", sub.ID)
+
+		if err != nil {
+			t.Fatalf("Failed to delete created sub notification: %v\n", err)
+		}
+
+		_, err = db.Exec("DELETE FROM subscription WHERE sub_id = $1", sub.ID)
+
+		if err != nil {
+			t.Fatalf("Failed to delete created sub: %v\n", err)
+		}
+	}
+
+	err = subCleanUp(Subscription{}, n, u, db)
+
+	if err != nil {
+		t.Fatalf("Failed to clean up: %v", err)
+	}
+
+}
+
 func subCleanUp(s Subscription, ni NotifyInfo, u User, db *sql.DB) error {
-	_, err := db.Exec("DELETE FROM sub_notification WHERE sub_id = $1", s.ID)
+	// We can send a blank Subscription struct if we have already cleaned up
+	if s.ID != "" {
+		_, err := db.Exec("DELETE FROM sub_notification WHERE sub_id = $1", s.ID)
 
-	if err != nil {
-		return fmt.Errorf("Failed to delete created notification: %v\n", err)
+		if err != nil {
+			return fmt.Errorf("Failed to delete created subs: %v\n", err)
+		}
+
+		_, err = db.Exec("DELETE FROM subscription WHERE sub_id = $1", s.ID)
+
+		if err != nil {
+			return fmt.Errorf("Failed to delete created sub: %v\n", err)
+		}
 	}
 
-	_, err = db.Exec("DELETE FROM subscription WHERE sub_id = $1", s.ID)
-
-	if err != nil {
-		return fmt.Errorf("Failed to delete created notification: %v\n", err)
-	}
-	_, err = db.Exec("DELETE FROM notification WHERE notification_id = $1", ni.ID)
+	_, err := db.Exec("DELETE FROM notification WHERE notification_id = $1", ni.ID)
 
 	if err != nil {
 		return fmt.Errorf("Failed to delete created notification: %v\n", err)
