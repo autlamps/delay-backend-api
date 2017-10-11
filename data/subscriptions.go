@@ -7,6 +7,8 @@ import (
 
 	"errors"
 
+	"encoding/json"
+
 	"github.com/google/uuid"
 )
 
@@ -37,20 +39,35 @@ type NewSubscription struct {
 
 // Subscription contains all subscription info
 type Subscription struct {
-	ID              string
-	TripID          string
-	StopTimeID      string
-	UserID          string
-	Archived        bool
-	Created         time.Time
-	Monday          bool
-	Tuesday         bool
-	Wednesday       bool
-	Thursday        bool
-	Friday          bool
-	Saturday        bool
-	Sunday          bool
-	NotificationIDs []string
+	ID              string    `json:"id"`
+	TripID          string    `json:"trip_id"`
+	StopTimeID      string    `json:"-"`
+	UserID          string    `json:"user_id"`
+	Archived        bool      `json:"archived"`
+	Created         time.Time `json:"-"`
+	Monday          bool      `json:"monday"`
+	Tuesday         bool      `json:"tuesday"`
+	Wednesday       bool      `json:"wednesday"`
+	Thursday        bool      `json:"thursday"`
+	Friday          bool      `json:"friday"`
+	Saturday        bool      `json:"saturday"`
+	Sunday          bool      `json:"sunday"`
+	NotificationIDs []string  `json:"notification_ids"`
+}
+
+// MarshalJSON for Subscription to convert days and time into the proper format
+func (s *Subscription) MarshalJSON() ([]byte, error) {
+	type Sub Subscription
+
+	js := struct {
+		*Sub
+		Created int64 `json:"created"`
+	}{
+		Sub:     (*Sub)(s),
+		Created: s.Created.Unix(),
+	}
+
+	return json.Marshal(js)
 }
 
 // SubscriptionStore defines methods for a concrete implementation
