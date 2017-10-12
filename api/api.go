@@ -25,8 +25,10 @@ type Env struct {
 	Users            data.UserStore
 	Tokens           data.TokenStore
 	Routes           static.RouteStore
+	StopTime         static.StopTimeStore
 	ObjStore         objstore.Store
 	NotificationInfo data.NotifyInfoStore
+	Subscriptions    data.SubscriptionStore
 }
 
 // Create returns a router ready to handle requests
@@ -51,7 +53,9 @@ func Create(c Conf) (*mux.Router, error) {
 		Users:            data.InitUserService(db),
 		Tokens:           data.InitTokenService(c.Key, db),
 		Routes:           static.RouteServiceInit(db),
+		StopTime:         static.StopTimeServiceInit(db),
 		NotificationInfo: data.InitNotifyInfoService(db),
+		Subscriptions:    data.InitSubscriptionService(db),
 		ObjStore:         obj,
 	}
 
@@ -64,6 +68,8 @@ func Create(c Conf) (*mux.Router, error) {
 	r.Handle("/delays", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetDelays)).Methods("GET")
 	r.Handle("/notifications", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.CreateNotification)).Methods("POST")
 	r.Handle("/notifications", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetAllUserNotifications)).Methods("GET")
+	r.Handle("/subscriptions", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.CreateNewSubscription)).Methods("POST")
+	r.Handle("/subscriptions", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetAllUserSubscriptions)).Methods("GET")
 
 	return r, nil
 }
@@ -74,9 +80,11 @@ func CurrentRoutes(w http.ResponseWriter, r *http.Request) {
 		"<p>Create New User - POST /users</p>"+
 			"<p>Authenitcate User - POST /tokens</p>"+
 			"<p>Get All Routes - GET /routes</p>"+
-			"<p>Get a Route with an ID - GET /routes/:route_id</p"+
-			"><p>Get Delays - GET /delays</p>"+
+			"<p>Get a Route with an ID - GET /routes/:route_id</p>"+
+			"<p>Get Delays - GET /delays</p>"+
 			"<p>Create Notification Method - POST /notifications</p>"+
-			"<p>Get all notifications - GET /notifications</p>",
+			"<p>Get all notifications - GET /notifications</p>"+
+			"<p>Create Subscription - POST /subscriptions</p>"+
+			"<p>Get all user subscriptions - GET /subscriptions</p>",
 	)
 }

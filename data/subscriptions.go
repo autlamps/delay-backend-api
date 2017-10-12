@@ -39,24 +39,26 @@ type NewSubscription struct {
 
 // Subscription contains all subscription info
 type Subscription struct {
-	ID              string    `json:"id"`
-	TripID          string    `json:"trip_id"`
-	StopTimeID      string    `json:"-"`
-	UserID          string    `json:"user_id"`
-	Archived        bool      `json:"archived"`
-	Created         time.Time `json:"-"`
-	Monday          bool      `json:"monday"`
-	Tuesday         bool      `json:"tuesday"`
-	Wednesday       bool      `json:"wednesday"`
-	Thursday        bool      `json:"thursday"`
-	Friday          bool      `json:"friday"`
-	Saturday        bool      `json:"saturday"`
-	Sunday          bool      `json:"sunday"`
-	NotificationIDs []string  `json:"notification_ids"`
+	ID              string      `json:"id"`
+	TripID          string      `json:"trip_id"`
+	StopTimeID      string      `json:"-"`
+	UserID          string      `json:"user_id"`
+	Archived        bool        `json:"archived"`
+	Created         time.Time   `json:"-"`
+	Monday          bool        `json:"monday"`
+	Tuesday         bool        `json:"tuesday"`
+	Wednesday       bool        `json:"wednesday"`
+	Thursday        bool        `json:"thursday"`
+	Friday          bool        `json:"friday"`
+	Saturday        bool        `json:"saturday"`
+	Sunday          bool        `json:"sunday"`
+	NotificationIDs []string    `json:"notification_ids"`
+	StopTimeInfo    interface{} `json:"stop_time,omitempty"`
 }
 
-// MarshalJSON for Subscription to convert days and time into the proper format
+// MarshalJSON for Subscription to convert days and time into the proper format i.e unix time stamp
 func (s *Subscription) MarshalJSON() ([]byte, error) {
+	// Setup type alias to remove Subscription methods
 	type Sub Subscription
 
 	js := struct {
