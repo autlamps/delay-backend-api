@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"strings"
+
 	"github.com/autlamps/delay-backend-api/data"
 	"github.com/autlamps/delay-backend-api/output"
 )
@@ -40,6 +42,11 @@ func (e *Env) CreateNewUser(w http.ResponseWriter, r *http.Request) {
 		user, err = e.Users.NewUser(nu)
 
 		if err != nil {
+			if strings.Contains(err.Error(), `"duplicate key value violates unique constraint "users_email_key""`) {
+				w.WriteHeader(http.StatusConflict)
+				w.Write([]byte(output.JSON409Response))
+				return
+			}
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(output.JSON500Response))

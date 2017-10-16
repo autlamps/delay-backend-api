@@ -36,6 +36,7 @@ func New500Response() Response {
 var JSON500Response = `{"success":false,"errors":{"code":500,"msg":"Internal Server Error"},"result":null,"meta":{"version":"Alpha","by":"Izaac Crooke, Dhayrin Colbert, Dominic Porter, Hayden Woodhead"}}`
 var JSON401Response = `{"success":false,"errors":{"code":403,"msg":"Invalid authentication token"},"result":null,"meta":{"version":"alpha","by":"Izaac Crooke, Dhayrin Colbert, Dominic Porter, Hayden Woodhead"}}`
 var JSON403Response = `{"success":false,"errors":{"code":401,"msg":"Authenticated header not included"},"result":null,"meta":{"version":"alpha","by":"Izaac Crooke, Dhayrin Colbert, Dominic Porter, Hayden Woodhead"}}`
+var JSON409Response = `{"success":false,"errors":{"code":409,"msg":"Email already registered"},"result":null,"meta":{"version":"alpha","by":"Izaac Crooke, Dhayrin Colbert, Dominic Porter, Hayden Woodhead"}}`
 
 // GetMeta returns the meta info for our response
 func GetMeta() Meta {
