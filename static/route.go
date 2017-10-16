@@ -12,6 +12,7 @@ type Route struct {
 	AgencyID  string `json:"agency_id"`
 	ShortName string `json:"short_name"`
 	LongName  string `json:"long_name"`
+	RouteType string `json:"route_type"`
 }
 
 type Routes []Route
@@ -36,8 +37,8 @@ func RouteServiceInit(db *sql.DB) *RouteService {
 func (rs *RouteService) GetRouteByID(id string) (Route, error) {
 	r := Route{}
 
-	row := rs.db.QueryRow("SELECT route_id, gtfs_route_id, agency_id, route_short_name, route_long_name FROM routes where route_id = $1", id)
-	err := row.Scan(&r.ID, &r.GTFSID, &r.AgencyID, &r.ShortName, &r.LongName)
+	row := rs.db.QueryRow("SELECT route_id, gtfs_route_id, agency_id, route_short_name, route_long_name, route_type FROM routes where route_id = $1", id)
+	err := row.Scan(&r.ID, &r.GTFSID, &r.AgencyID, &r.ShortName, &r.LongName, &r.RouteType)
 
 	if err != nil {
 		return r, err
@@ -50,7 +51,7 @@ func (rs *RouteService) GetRouteByID(id string) (Route, error) {
 func (rs *RouteService) GetRoutes() (Routes, error) {
 	gr := Routes{}
 
-	rows, err := rs.db.Query("SELECT route_id, gtfs_route_id, agency_id, route_short_name, route_long_name FROM routes")
+	rows, err := rs.db.Query("SELECT route_id, gtfs_route_id, agency_id, route_short_name, route_long_name, route_type FROM routes")
 
 	if err != nil {
 		return gr, fmt.Errorf("route - GetRoutes: %v", err)
@@ -58,7 +59,7 @@ func (rs *RouteService) GetRoutes() (Routes, error) {
 
 	for rows.Next() {
 		r := Route{}
-		err := rows.Scan(&r.ID, &r.GTFSID, &r.AgencyID, &r.ShortName, &r.LongName)
+		err := rows.Scan(&r.ID, &r.GTFSID, &r.AgencyID, &r.ShortName, &r.LongName, &r.RouteType)
 
 		if err != nil {
 			return gr, fmt.Errorf("route - GetRoutes: failed to scan: %v", err)
