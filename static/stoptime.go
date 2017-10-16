@@ -2,25 +2,44 @@ package static
 
 import (
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"time"
 )
 
 // StopTime represents a specific stop on a trip. Also includes embedded Stop info
 type StopTime struct {
-	ID           string
-	TripID       string
-	Arrival      time.Time
-	Departure    time.Time
-	StopSequence int
-	StopInfo     Stop
+	ID           string    `json:"id"`
+	TripID       string    `json:"trip_id"`
+	Arrival      time.Time `json:"arrival"`
+	Departure    time.Time `json:"departure"`
+	StopSequence int       `json:"stop_sequence"`
+	StopInfo     Stop      `json:"stop_info"`
+}
+
+// MarshalJSON for StopTime
+func (s StopTime) MarshalJSON() ([]byte, error) {
+	type ST StopTime
+
+	js := struct {
+		ST
+		Departure string `json:"departure"`
+		Arrival   string `json:"arrival"`
+	}{
+		ST:        (ST)(s),
+		Departure: s.Departure.Format("15:04:05"),
+		Arrival:   s.Arrival.Format("15:04:05"),
+	}
+
+	return json.Marshal(js)
 }
 
 // Stop represents a physical stop. Embedded into StopTime instead of being its own service for ease of use
 type Stop struct {
-	ID   string
-	Name string
-	Lat  float64
-	Lon  float64
+	ID   string  `json:"id"`
+	Name string  `json:"name"`
+	Lat  float64 `json:"lat"`
+	Lon  float64 `json:"lon"`
 }
 
 // StopTimeArray is simply a slice of StopTime
@@ -29,6 +48,7 @@ type StopTimeArray []StopTime
 // StopTimeStore defines the methods that a concrete StopTimeService should implement
 type StopTimeStore interface {
 	GetStopTimesByTripID(tripID string) (StopTimeArray, error)
+	GetStopTimeByID(id string) (StopTime, error)
 	getStopByID(id string) (Stop, error)
 }
 
@@ -71,6 +91,30 @@ func (sts *StopTimeService) GetStopTimesByTripID(tripID string) (StopTimeArray, 
 	}
 
 	return sta, nil
+}
+
+// GetStopTimesByID returns a singular stoptime with stop info
+func (sts *StopTimeService) GetStopTimeByID(id string) (StopTime, error) {
+	st := StopTime{}
+	var stopID string
+
+	row := sts.db.QueryRow("SELECT stoptime_id, trip_id, arrival_time, departure_time, stop_id, stop_sequence from stop_times WHERE stoptime_id = $1", id)
+
+	err := row.Scan(&st.ID, &st.TripID, &st.Arrival, &st.Departure, &stopID, &st.StopSequence)
+
+	if err != nil {
+		return StopTime{}, fmt.Errorf("stoptime - GetStopTimeByID: Failed to get stoptime: %v", err)
+	}
+
+	stop, err := sts.getStopByID(stopID)
+
+	if err != nil {
+		return StopTime{}, fmt.Errorf("stoptime - GetStopTimesByID: Failed to get stop info: %v", err)
+	}
+
+	st.StopInfo = stop
+
+	return st, nil
 }
 
 // getStopByID returns a single stop
