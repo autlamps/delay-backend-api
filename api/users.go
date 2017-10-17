@@ -42,7 +42,7 @@ func (e *Env) CreateNewUser(w http.ResponseWriter, r *http.Request) {
 		user, err = e.Users.NewUser(nu)
 
 		if err != nil {
-			if strings.Contains(err.Error(), `"duplicate key value violates unique constraint "users_email_key""`) {
+			if strings.Contains(err.Error(), "users_email_key") {
 				w.WriteHeader(http.StatusConflict)
 				w.Write([]byte(output.JSON409Response))
 				return
