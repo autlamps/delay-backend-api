@@ -89,20 +89,22 @@ func (e *Env) GetSubedDelays(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var osubs []delays.OutTrip
+	var subedDelays []delays.OutTrip
 
+	// Looping over all delayed trips then all subscribed trips.
+	// If they equal added to subedDelays
 	for _, d := range od.Trips {
 		for _, s := range subs {
 			if d.TripID == s.TripID {
-				osubs = append(osubs, d)
+				subedDelays = append(subedDelays, d)
 			}
 		}
 	}
 
 	// Reinsert data into outDelays for export
 
-	od.Trips = osubs
-	od.Count = len(osubs)
+	od.Trips = subedDelays
+	od.Count = len(subedDelays)
 
 	resp := output.Response{
 		Success: true,
