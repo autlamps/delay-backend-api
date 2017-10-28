@@ -24,7 +24,7 @@ func (e *Env) CreateNewSubscription(w http.ResponseWriter, r *http.Request) {
 
 	jns := struct {
 		TripID          string     `json:"trip_id"`
-		StopTimeID      string     `json:"stop_time_id"`
+		StopTimeID      string     `json:"stoptime_id"`
 		Days            []data.Day `json:"days"`
 		NotificationIDs []string   `json:"notification_ids"`
 	}{}
