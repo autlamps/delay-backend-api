@@ -1,5 +1,10 @@
 # delay-backend-api
 
+## EXPERIMENTAL BRANCH - DO NOT MERGE
+Companion to: [delay-backend-collection:hw/add_cancelled](https://github.com/autlamps/delay-backend-collection/tree/hw/add_cancelled)
+
+Do not megre without consulting @haydenwoodhead
+
 ## License
 
 Copyright (C) 2017 Dharyin Colbert, Izaac Crooke, Dominic Porter, Hayden Woodhead
