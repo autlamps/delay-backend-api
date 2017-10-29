@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (e *Env) GetTrip(w http.ResponseWriter, r *http.Request) {
+func (e *Env) GetStoptimesByTrip(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	vars := mux.Vars(r)
