@@ -66,7 +66,7 @@ func Create(c Conf) (*mux.Router, error) {
 	r.Handle("/tokens", alice.New(JSONContentType).ThenFunc(env.AuthenticateUser)).Methods("POST")
 	r.Handle("/routes", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRoutes)).Methods("GET")
 	r.Handle("/routes/{route_id}", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRoute)).Methods("GET")
-	r.Handle("/routes/{route_id}/trips", alice.New(JSONContentType).ThenFunc(env.GetRouteTrips)).Methods("GET")
+	r.Handle("/routes/{route_id}/trips", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRouteTrips)).Methods("GET")
 	r.Handle("/delays", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetDelays)).Methods("GET")
 	r.Handle("/delays/subscribed", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetSubedDelays)).Methods("GET")
 	r.Handle("/notifications", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.CreateNotification)).Methods("POST")
