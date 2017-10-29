@@ -67,6 +67,7 @@ func Create(c Conf) (*mux.Router, error) {
 	r.Handle("/routes/{route_id}", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRoute)).Methods("GET")
 	r.Handle("/delays", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetDelays)).Methods("GET")
 	r.Handle("/delays/subscribed", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetSubedDelays)).Methods("GET")
+	r.Handle("/stoptime/{trip_id}", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetTrip)).Methods("GET")
 	r.Handle("/notifications", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.CreateNotification)).Methods("POST")
 	r.Handle("/notifications", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetAllUserNotifications)).Methods("GET")
 	r.Handle("/subscriptions", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.CreateNewSubscription)).Methods("POST")
@@ -83,6 +84,7 @@ func CurrentRoutes(w http.ResponseWriter, r *http.Request) {
 			"<p>Get All Routes - GET /routes</p>"+
 			"<p>Get a Route with an ID - GET /routes/:route_id</p>"+
 			"<p>Get Delays - GET /delays</p>"+
+			"<p>Get stoptimes of a trip from it's ID - GET /stoptime/:trip_id</p>"+
 			"<p>Create Notification Method - POST /notifications</p>"+
 			"<p>Get all notifications - GET /notifications</p>"+
 			"<p>Create Subscription - POST /subscriptions</p>"+
