@@ -117,6 +117,26 @@ func (sts *StopTimeService) GetStopTimeByID(id string) (StopTime, error) {
 	return st, nil
 }
 
+func (sts *StopTimeService) getStopTimesByID(id string) (StopTimeArray, error) {
+	str := StopTimeArray{}
+
+	rows, err := sts.db.Query("SELECT stoptime_id, arrival_time, departure_time, stop_id, stop_sequence FROM stop_times WHERE trip_id = $1", id)
+	if err != nil {
+		return str, fmt.Errorf("stoptime - GetStopTimes: %v", err)
+	}
+
+	for rows.Next() {
+		st := StopTime{}
+		err := rows.Scan(&st.ID, &st.Arrival, &st.Departure, &st.StopInfo, &st.StopSequence)
+		if err != nil {
+			return str, fmt.Errorf("stoptime - GetStoptimes: Failed to scan: %v", err)
+		}
+		str = append(str, st)
+	}
+
+	return str, nil
+}
+
 // getStopByID returns a single stop
 func (sts *StopTimeService) getStopByID(id string) (Stop, error) {
 	s := Stop{}
