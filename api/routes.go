@@ -79,3 +79,47 @@ func (e *Env) GetRoute(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(gr)
 }
+
+func (e *Env) GetRouteTrips(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	vars := mux.Vars(r)
+	route_id := vars["route_id"]
+
+	route, err := e.Routes.GetRouteByID(route_id)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	trips, err := e.Trips.GetTripsByRouteID(route.ID)
+
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	result := struct {
+		Route static.Route `json:"route"`
+		Trips static.Trips `json:"trips"`
+	}{
+		Route: route,
+		Trips: trips,
+	}
+
+	gs := output.Response{
+		Success: true,
+		Result:  result,
+		Errors:  nil,
+		Meta:    output.GetMeta(),
+	}
+
+	gr, err := json.Marshal(gs)
+
+	w.Write(gr)
+}

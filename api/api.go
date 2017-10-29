@@ -25,6 +25,7 @@ type Env struct {
 	Users            data.UserStore
 	Tokens           data.TokenStore
 	Routes           static.RouteStore
+	Trips            static.TripStore
 	StopTime         static.StopTimeStore
 	ObjStore         objstore.Store
 	NotificationInfo data.NotifyInfoStore
@@ -56,6 +57,7 @@ func Create(c Conf) (*mux.Router, error) {
 		StopTime:         static.StopTimeServiceInit(db),
 		NotificationInfo: data.InitNotifyInfoService(db),
 		Subscriptions:    data.InitSubscriptionService(db),
+		Trips:            static.TripServiceInit(db),
 		ObjStore:         obj,
 	}
 
@@ -65,6 +67,7 @@ func Create(c Conf) (*mux.Router, error) {
 	r.Handle("/tokens", alice.New(JSONContentType).ThenFunc(env.AuthenticateUser)).Methods("POST")
 	r.Handle("/routes", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRoutes)).Methods("GET")
 	r.Handle("/routes/{route_id}", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRoute)).Methods("GET")
+	r.Handle("/routes/{route_id}/trips", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetRouteTrips)).Methods("GET")
 	r.Handle("/delays", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetDelays)).Methods("GET")
 	r.Handle("/delays/subscribed", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.GetSubedDelays)).Methods("GET")
 	r.Handle("/notifications", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.CreateNotification)).Methods("POST")
@@ -82,6 +85,7 @@ func CurrentRoutes(w http.ResponseWriter, r *http.Request) {
 			"<p>Authenitcate User - POST /tokens</p>"+
 			"<p>Get All Routes - GET /routes</p>"+
 			"<p>Get a Route with an ID - GET /routes/:route_id</p>"+
+			"<p>Get all trips for a route - GET /routes/:route_id/trips</p>"+
 			"<p>Get Delays - GET /delays</p>"+
 			"<p>Create Notification Method - POST /notifications</p>"+
 			"<p>Get all notifications - GET /notifications</p>"+
