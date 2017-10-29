@@ -41,7 +41,7 @@ func (rs *RouteService) GetRouteByID(id string) (Route, error) {
 	err := row.Scan(&r.ID, &r.GTFSID, &r.AgencyID, &r.ShortName, &r.LongName, &r.RouteType)
 
 	if err != nil {
-		return r, err
+		return r, fmt.Errorf("route - GetRouteByID: failed to query db: %v", err)
 	}
 
 	return r, nil

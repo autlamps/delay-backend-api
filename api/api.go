@@ -57,6 +57,7 @@ func Create(c Conf) (*mux.Router, error) {
 		StopTime:         static.StopTimeServiceInit(db),
 		NotificationInfo: data.InitNotifyInfoService(db),
 		Subscriptions:    data.InitSubscriptionService(db),
+		Trips:            static.TripServiceInit(db),
 		ObjStore:         obj,
 	}
 

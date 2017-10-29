@@ -87,6 +87,7 @@ func (e *Env) GetRouteTrips(w http.ResponseWriter, r *http.Request) {
 	route_id := vars["route_id"]
 
 	route, err := e.Routes.GetRouteByID(route_id)
+
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -94,7 +95,8 @@ func (e *Env) GetRouteTrips(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	trips, err := e.Trips.GetTripByGTFSID(route.GTFSID)
+	trips, err := e.Trips.GetTripsByRouteID(route.ID)
+
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -103,9 +105,11 @@ func (e *Env) GetRouteTrips(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := struct {
-		Trips static.Trip
+		Route static.Route `json:"route"`
+		Trips static.Trips `json:"trips"`
 	}{
-		trips,
+		Route: route,
+		Trips: trips,
 	}
 
 	gs := output.Response{

@@ -7,11 +7,11 @@ import (
 
 // Trip represents a trip as stored in the database
 type Trip struct {
-	ID        string
-	RouteID   string
-	ServiceID string
-	GTFSID    string
-	Headsign  string
+	ID        string `json:"id"`
+	RouteID   string `json:"route_id"`
+	ServiceID string `json:"service_id"`
+	GTFSID    string `json:"gtfsid"`
+	Headsign  string `json:"headsign"`
 }
 
 type Trips []Trip
@@ -19,24 +19,24 @@ type Trips []Trip
 // TripStore defines methods that a concrete trip service should implement
 type TripStore interface {
 	GetTripByGTFSID(id string) (Trip, error)
-	GetTripByRouteID(id string) (Trips, error)
+	GetTripsByRouteID(id string) (Trips, error)
 }
 
 // TripService implements TripStore for psql
 type TripService struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 // TripServiceInit initializes and returns a TripService with a given sql db connector
 func TripServiceInit(db *sql.DB) *TripService {
-	return &TripService{DB: db}
+	return &TripService{db: db}
 }
 
 // GetTripByGTFSID returns a trip with the given realtime trip id or an error
 func (ts *TripService) GetTripByGTFSID(id string) (Trip, error) {
 	t := Trip{}
 
-	row := ts.DB.QueryRow("SELECT trip_id, route_id, service_id, gtfs_trip_id, trip_headsign FROM trips WHERE gtfs_trip_id = $1", id)
+	row := ts.db.QueryRow("SELECT trip_id, route_id, service_id, gtfs_trip_id, trip_headsign FROM trips WHERE gtfs_trip_id = $1", id)
 	err := row.Scan(&t.ID, &t.RouteID, &t.ServiceID, &t.GTFSID, &t.Headsign)
 
 	if err != nil {
@@ -46,30 +46,25 @@ func (ts *TripService) GetTripByGTFSID(id string) (Trip, error) {
 	return t, nil
 }
 
-func (ts *TripService) GetTripByRouteID(id string) (Trips, error) {
+func (ts *TripService) GetTripsByRouteID(id string) (Trips, error) {
 	tps := Trips{}
-	var ri string
 
-	row := ts.DB.QueryRow("SELECT route_id FROM routes WHERE gtfs_route_id = $1", id)
-	err := row.Scan(&ri)
+	rows, err := ts.db.Query("SELECT trip_id, route_id, service_id, gtfs_trip_id, trip_headsign FROM trips WHERE route_id = $1", id)
 
-	if err != nil {
-		return tps, err
-	}
-
-	rows, err := ts.DB.Query("SELECT trip_id, route_id, service_id, gtfs_trip_id, trip_headsign FROM trips WHERE route_id = $1", ri)
 	if err != nil {
 		return tps, fmt.Errorf("trip - GetTripFromRouteID: %v", err)
 	}
 
 	for rows.Next() {
 		t := Trip{}
-		err = row.Scan(&t.ID, &t.RouteID, &t.ServiceID, &t.GTFSID, &t.Headsign)
-		if err != nil {
-			return t, fmt.Errorf("trip - GetTripFromRouteID: Failed to scan: %v", err)
-		}
-		tps = append(tps, t)
 
+		err = rows.Scan(&t.ID, &t.RouteID, &t.ServiceID, &t.GTFSID, &t.Headsign)
+
+		if err != nil {
+			return Trips{}, fmt.Errorf("trip - GetTripFromRouteID: Failed to scan: %v", err)
+		}
+
+		tps = append(tps, t)
 	}
 
 	return tps, nil
