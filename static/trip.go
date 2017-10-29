@@ -2,6 +2,7 @@ package static
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 // Trip represents a trip as stored in the database
@@ -13,9 +14,12 @@ type Trip struct {
 	Headsign  string
 }
 
+type Trips []Trip
+
 // TripStore defines methods that a concrete trip service should implement
 type TripStore interface {
 	GetTripByGTFSID(id string) (Trip, error)
+	GetTrips() (Trips, error)
 }
 
 // TripService implements TripStore for psql
@@ -26,6 +30,27 @@ type TripService struct {
 // TripServiceInit initializes and returns a TripService with a given sql db connector
 func TripServiceInit(db *sql.DB) *TripService {
 	return &TripService{DB: db}
+}
+
+func (ts *TripService) GetTrips() (Trips, error) {
+	trs := Trips{}
+
+	rows, err := ts.DB.Query("SELECT trip_id, route_id, service_id, gtfs_trip_id, trip_headsign FROM trips")
+	if err != nil {
+		return trs, fmt.Errorf("trip - GetTrips: %v", err)
+	}
+
+	for rows.Next() {
+		t := Trip{}
+		err := rows.Scan(&t.ID, &t.RouteID, &t.ServiceID, &t.GTFSID, &t.Headsign)
+		if err != nil {
+			return trs, fmt.Errorf("trip - GetTrips: failed to scan: %v", err)
+		}
+
+		trs = append(trs, t)
+	}
+
+	return trs, nil
 }
 
 // GetTripByGTFSID returns a trip with the given realtime trip id or an error
