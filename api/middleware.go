@@ -57,14 +57,16 @@ func (e *Env) CheckEmailConfirmed(h http.Handler) http.Handler {
 		u, err := e.Users.GetUser(tk.UserID)
 
 		if err != nil {
-			log.Printf("CheckEmailConfirmed - failed to get user: %v", tk)
+			log.Printf("CheckEmailConfirmed - failed to get user: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(output.JSON500Response))
 			return
 		}
 
-		if !u.EmailConfirmed {
-			w.Header().Set("X-DELAY-CONFIRMED", "false")
+		if u.Email != "" {
+			if !u.EmailConfirmed {
+				w.Header().Set("X-DELAY-CONFIRMED", "false")
+			}
 		}
 
 		h.ServeHTTP(w, r)
