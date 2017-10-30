@@ -10,15 +10,19 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 
+	"github.com/autlamps/delay-backend-api/email"
 	"github.com/autlamps/delay-backend-api/objstore"
 	"github.com/autlamps/delay-backend-api/static"
 	_ "github.com/lib/pq"
 )
 
 type Conf struct {
-	RDURL string
-	DBURL string
-	Key   string
+	RDURL         string
+	DBURL         string
+	Key           string
+	MGKey         string
+	Domain        string
+	ConfirmDomain string
 }
 
 type Env struct {
@@ -30,6 +34,7 @@ type Env struct {
 	ObjStore         objstore.Store
 	NotificationInfo data.NotifyInfoStore
 	Subscriptions    data.SubscriptionStore
+	Mail             email.Emailer
 }
 
 // Create returns a router ready to handle requests
@@ -59,6 +64,7 @@ func Create(c Conf) (*mux.Router, error) {
 		Subscriptions:    data.InitSubscriptionService(db),
 		Trips:            static.TripServiceInit(db),
 		ObjStore:         obj,
+		Mail:             email.InitMailgunService(c.MGKey, c.Domain, c.ConfirmDomain),
 	}
 
 	r := mux.NewRouter()
