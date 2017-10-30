@@ -115,12 +115,13 @@ func (us *UserService) NewAnonUser() (User, error) {
 func (us *UserService) GetUser(id string) (User, error) {
 	var email sql.NullString
 	var name sql.NullString
+	var emailConfirmed sql.NullBool
 
 	row := us.db.QueryRow("SELECT user_id, email, name, password, email_confirmed, date_created FROM users WHERE user_id = $1", id)
 
 	u := User{}
 
-	err := row.Scan(&u.ID, &email, &name, &u.Password, &u.EmailConfirmed, &u.Created)
+	err := row.Scan(&u.ID, &email, &name, &u.Password, &emailConfirmed, &u.Created)
 
 	if email.Valid {
 		u.Email = email.String
@@ -132,6 +133,12 @@ func (us *UserService) GetUser(id string) (User, error) {
 		u.Name = name.String
 	} else {
 		u.Name = ""
+	}
+
+	if emailConfirmed.Valid {
+		u.EmailConfirmed = emailConfirmed.Bool
+	} else {
+		u.EmailConfirmed = false
 	}
 
 	if err != nil {
