@@ -64,6 +64,11 @@
 			"Rev": "e42267488fe361b9dc034be7a6bffef5b195bceb"
 		},
 		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.8.0-7-gf15c970",
+			"Rev": "f15c970de5b76fac0b59abb32d62c17cc7bed265"
+		},
+		{
 			"ImportPath": "golang.org/x/crypto/bcrypt",
 			"Rev": "b176d7def5d71bdd214203491f89843ed217f420"
 		},
