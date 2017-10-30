@@ -21,7 +21,7 @@ var MailgunUnauthorized = errors.New("email - Mailgun incorrect auth key")
 
 // Emailer defines methods for our mailgun implementation
 type Emailer interface {
-	SendConfirmation(to string) error
+	SendConfirmation(to, name, id string) error
 }
 
 type Mailgun struct {
