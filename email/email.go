@@ -37,7 +37,7 @@ func (m *Mailgun) SendConfirmation(to, name, id string) error {
 	c := http.Client{Timeout: time.Second * time.Duration(30)}
 
 	from := fmt.Sprintf("Delayed NZ <confirm@%v>", m.domain)
-	text := fmt.Sprintf("Hey %v\r\n\r\nThank you for signing up to Delayed. Before you can login, please confirm your email.\r\nClick here https://%v/confirm/%v\r\n\r\nThe Delayed Team", name, m.confirmDomain, id)
+	text := fmt.Sprintf("Hey %v\r\n\r\nThank you for signing up to Delayed. Before you can login, please confirm your email.\r\n\r\nClick here https://%v/confirm/%v\r\n\r\nThe Delayed Team", name, m.confirmDomain, id)
 
 	form := url.Values{}
 	form.Set("from", from)
