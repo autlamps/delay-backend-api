@@ -41,6 +41,36 @@ func (e *Env) AuthUser(h http.Handler) http.Handler {
 	})
 }
 
+func (e *Env) CheckEmailConfirmed(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		tk, ok := ctx.Value("Token").(data.Token)
+
+		if !ok {
+			log.Printf("CheckEmailConfirmed - Token from context not of type ctx: %v", tk)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(output.JSON500Response))
+			return
+		}
+
+		u, err := e.Users.GetUser(tk.UserID)
+
+		if err != nil {
+			log.Printf("CheckEmailConfirmed - failed to get user: %v", tk)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(output.JSON500Response))
+			return
+		}
+
+		if !u.EmailConfirmed {
+			w.Header().Set("X-DELAY-CONFIRMED", "false")
+		}
+
+		h.ServeHTTP(w, r)
+	})
+}
+
 // JSONContentType sets content type of request to json
 func JSONContentType(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
