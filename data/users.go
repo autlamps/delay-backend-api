@@ -24,11 +24,12 @@ type NewUser struct {
 
 // User contains info on our user
 type User struct {
-	ID       uuid.UUID
-	Name     string
-	Email    string
-	Password []byte
-	Created  time.Time
+	ID             uuid.UUID
+	Name           string
+	Email          string
+	Password       []byte
+	EmailConfirmed bool
+	Created        time.Time
 }
 
 // UserStore is our interface defining methods for concrete service
@@ -64,19 +65,21 @@ func (us *UserService) NewUser(nu NewUser) (User, error) {
 	}
 
 	u := User{
-		ID:       id,
-		Name:     nu.Name,
-		Email:    nu.Email,
-		Password: hp,
-		Created:  time.Now().Round(time.Second),
+		ID:             id,
+		Name:           nu.Name,
+		Email:          nu.Email,
+		Password:       hp,
+		EmailConfirmed: false,
+		Created:        time.Now().Round(time.Second),
 	}
 
 	_, err = us.db.Exec(
-		"Insert into users (user_id, email, name, password, date_created) VALUES ($1, $2, $3, $4, $5)",
+		"Insert into users (user_id, email, name, password, email_confirmed, date_created) VALUES ($1, $2, $3, $4, $5, $6)",
 		u.ID,
 		u.Email,
 		u.Name,
 		u.Password,
+		u.EmailConfirmed,
 		u.Created,
 	)
 
@@ -113,11 +116,11 @@ func (us *UserService) GetUser(id string) (User, error) {
 	var email sql.NullString
 	var name sql.NullString
 
-	row := us.db.QueryRow("SELECT user_id, email, name, password, date_created FROM users WHERE user_id = $1", id)
+	row := us.db.QueryRow("SELECT user_id, email, name, password, email_confirmed, date_created FROM users WHERE user_id = $1", id)
 
 	u := User{}
 
-	err := row.Scan(&u.ID, &email, &name, &u.Password, &u.Created)
+	err := row.Scan(&u.ID, &email, &name, &u.Password, &u.EmailConfirmed, &u.Created)
 
 	if email.Valid {
 		u.Email = email.String
