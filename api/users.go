@@ -52,6 +52,15 @@ func (e *Env) CreateNewUser(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(output.JSON500Response))
 			return
 		}
+
+		err := e.Mail.SendConfirmation(user.Email, user.Name, user.ID.String())
+
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(output.JSON500Response))
+			return
+		}
 	}
 
 	token, err := e.Tokens.New(user.ID.String())
