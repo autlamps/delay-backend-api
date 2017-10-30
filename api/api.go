@@ -70,6 +70,7 @@ func Create(c Conf) (*mux.Router, error) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", CurrentRoutes)
 	r.Handle("/users", alice.New(JSONContentType).ThenFunc(env.CreateNewUser)).Methods("POST")
+	r.Handle("/users/resend", alice.New(JSONContentType, env.AuthUser).ThenFunc(env.ResendConfirmationEmail)).Methods("GET")
 	r.Handle("/tokens", alice.New(JSONContentType).ThenFunc(env.AuthenticateUser)).Methods("POST")
 	r.Handle("/routes", alice.New(JSONContentType, env.AuthUser, env.CheckEmailConfirmed).ThenFunc(env.GetRoutes)).Methods("GET")
 	r.Handle("/routes/{route_id}", alice.New(JSONContentType, env.AuthUser, env.CheckEmailConfirmed).ThenFunc(env.GetRoute)).Methods("GET")

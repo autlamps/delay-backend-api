@@ -222,3 +222,73 @@ func (e *Env) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Write(rj)
 }
+
+func (e *Env) ResendConfirmationEmail(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	tk, ok := ctx.Value("Token").(data.Token)
+
+	if !ok {
+		log.Printf("Token from context not of type ctx: %v", tk)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	u, err := e.Users.GetUser(tk.UserID)
+
+	if err != nil {
+		log.Printf("subscriptions -  ResendConfirmationEmail: failed to get user: %v", tk)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	if u.EmailConfirmed {
+		resp := output.Response{
+			Success: true,
+			Errors:  nil,
+			Result:  "Email already confirmed",
+			Meta:    output.GetMeta(),
+		}
+
+		respJSON, err := json.Marshal(resp)
+
+		if err != nil {
+			log.Printf("subscriptions -  ResendConfirmationEmail: failed to marshal json response: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(output.JSON500Response))
+			return
+		}
+
+		w.Write(respJSON)
+		return
+	}
+
+	err = e.Mail.SendConfirmation(u.Email, u.Name, u.ID.String())
+
+	if err != nil {
+		log.Printf("subscriptions -  ResendConfirmationEmail: failed to call mailgun: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	resp := output.Response{
+		Success: true,
+		Errors:  nil,
+		Result:  "Email resent",
+		Meta:    output.GetMeta(),
+	}
+
+	respJSON, err := json.Marshal(resp)
+
+	if err != nil {
+		log.Printf("subscriptions -  ResendConfirmationEmail: failed to marshal json response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(output.JSON500Response))
+		return
+	}
+
+	w.Write(respJSON)
+}
