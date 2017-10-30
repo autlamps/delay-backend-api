@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"time"
 
-	"io/ioutil"
-
 	"strings"
 
 	"github.com/pkg/errors"
@@ -57,10 +55,6 @@ func (m *Mailgun) SendConfirmation(to, name, id string) error {
 	req.SetBasicAuth("api", m.key)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := c.Do(req)
-
-	defer resp.Body.Close()
-	bd, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(bd))
 
 	if resp.StatusCode == 401 {
 		return MailgunUnauthorized
