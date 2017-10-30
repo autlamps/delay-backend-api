@@ -90,6 +90,7 @@ func Create(c Conf) (*mux.Router, error) {
 func CurrentRoutes(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w,
 		"<p>Create New User - POST /users</p>"+
+			"<p>Resend confirmation email - GET /users/resend</p>"+
 			"<p>Authenitcate User - POST /tokens</p>"+
 			"<p>Get All Routes - GET /routes</p>"+
 			"<p>Get a Route with an ID - GET /routes/:route_id</p>"+
