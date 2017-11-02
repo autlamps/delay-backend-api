@@ -22,7 +22,7 @@ const (
 	MONDAY    Day = "Mon"
 	TUESDAY   Day = "Tue"
 	WEDNESDAY Day = "Wed"
-	THURSDAY  Day = "Thur"
+	THURSDAY  Day = "Thu"
 	FRIDAY    Day = "Fri"
 	SATURDAY  Day = "Sat"
 	SUNDAY    Day = "Sun"
